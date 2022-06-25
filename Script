@@ -1,0 +1,54 @@
+function generate_solids_from_tilemap(tilelayer_name,tilesize,solid_object)
+{
+	var lay = layer_get_id(tilelayer_name)
+	var tm = layer_tilemap_get_id(lay)
+
+	var main_w = room_width / tilesize
+	var main_h = room_height / tilesize
+
+	var main_grid = ds_grid_create(main_w+1,main_h+1)
+
+	for (var h=0; h<main_w; h++)
+	{
+		for (var v=0; v<main_h; v++)
+		{
+			if tilemap_get_at_pixel(tm,h*tilesize,v*tilesize) and !place_meeting(h*tilesize,v*tilesize,solid_object)
+				ds_grid_set(main_grid,h,v,true)
+		}
+	}
+
+
+	for (var v=0; v<main_h; v++)
+	{
+		for (var h=0; h<main_w; h++)
+		{
+			var is_tile = ds_grid_get(main_grid,h,v)
+		
+			if is_tile and !place_meeting(h*tilesize,v*tilesize,solid_object)
+			{
+				var start_tile = instance_create_depth(h*tilesize,v*tilesize,-1,solid_object)
+
+				var hor_length = 1
+				while(ds_grid_get(main_grid,h+hor_length,v)) hor_length++
+			
+				var ver_length = 1
+				while(ds_grid_get(main_grid,h,v+ver_length)) ver_length++
+			
+				var allow_lines = 1
+				repeat(ver_length-1)
+				{
+					var length = 1
+					while(ds_grid_get(main_grid,h+length,v+allow_lines)) length ++
+				
+					allow_lines += (length == hor_length) ? 1 : 0
+				}
+			
+				var result_h = hor_length
+				var result_v = allow_lines
+			
+				start_tile.image_xscale = result_h
+				start_tile.image_yscale = result_v
+			}
+		}
+	}
+}
